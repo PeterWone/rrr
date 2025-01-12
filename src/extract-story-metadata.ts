@@ -11,15 +11,23 @@ export function extractMetadata(document: Document): Record<string, any> {
         metadata.author = authorElement.textContent?.trim();
     }
 
-    const chapters: Array<{ name: string, releaseDate: string }> = [];
+    const canonicalLinkElement = document.querySelector('link[rel="canonical"]');
+    if (canonicalLinkElement) {
+        metadata.canonicalUrl = canonicalLinkElement.getAttribute('href');
+    }
+
+    const chapters: Array<{ name: string, datePublished: string, url: string, title: string }> = [];
     const chapterRows = document.querySelectorAll('#chapters tbody tr');
     chapterRows.forEach(row => {
         const nameElement = row.querySelector('td a');
         const dateElement = row.querySelector('td.text-right a time');
         if (nameElement && dateElement) {
+            const name = nameElement.textContent?.trim() || '';
             chapters.push({
-                name: nameElement.textContent?.trim() || '',
-                releaseDate: dateElement.getAttribute('datetime') || ''
+                name,
+                datePublished: dateElement.getAttribute('datetime') || '',
+                url: nameElement.getAttribute('href') || '',
+                title: name
             });
         }
     });

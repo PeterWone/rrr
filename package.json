@@ -7,7 +7,7 @@
     "rrr": "dist/index.js"
   },
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js && node prepend-shebang.js",
+    "build": "node esbuild.config.js && node prepend-shebang.js",
     "start": "ts-node --inspect dist/index.js"
   },
   "keywords": [],
