@@ -38,6 +38,10 @@ const fetchStory = async (storyId: string) => {
     margin: auto;
     padding: 0.5em;
   }
+  blockquote {
+    font-style: italic;
+    margin: 1em 0;
+  }
 </style>`;
 
     const storyFolderName = path.join(outputFolder, safeName(metadata.title));
@@ -87,7 +91,7 @@ const fetchStory = async (storyId: string) => {
         const prevChapterFileName = `${prevChapterDate}-${safeName(prevChapterMeta.title)}.html`;
         chapterStream.write(`<a href="./${prevChapterFileName}">Back (${prevChapterMeta.title})</a> | `);
       }
-      chapterStream.write('<a href="./toc.html">Contents</a>');
+      chapterStream.write(`<a href="./${path.basename(tocFileName)}">Contents</a>`);
       if (i < totalChapters - 1) {
         const nextChapterMeta = metadata.chapters[i + 1];
         const nextChapterDate = new Date(nextChapterMeta.datePublished).toISOString().split('T')[0];
@@ -106,7 +110,7 @@ const fetchStory = async (storyId: string) => {
         const prevChapterFileName = `${prevChapterDate}-${safeName(prevChapterMeta.title)}.html`;
         chapterStream.write(`<a href="./${prevChapterFileName}">Back (${prevChapterMeta.title})</a> | `);
       }
-      chapterStream.write('<a href="./toc.html">Contents</a>');
+      chapterStream.write(`<a href="./${path.basename(tocFileName)}">Contents</a>`);
       if (i < totalChapters - 1) {
         const nextChapterMeta = metadata.chapters[i + 1];
         const nextChapterDate = new Date(nextChapterMeta.datePublished).toISOString().split('T')[0];
