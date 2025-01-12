@@ -77,7 +77,7 @@ const fetchStory = async (storyId: string) => {
       chapterStream.write(`<html><head><title>${chapterTitle}</title>${style}</head><body>`);
       chapterStream.write(`<h2>${chapterTitle}</h2>`);
 
-      chapterStream.write(`<p>Word count: ${wordCount}</p>${chapterText}`);
+      chapterStream.write(`<p>Word count: ${wordCount}</p>`);
 
       // Add navigation links at the start
       chapterStream.write('<p>');
@@ -95,6 +95,8 @@ const fetchStory = async (storyId: string) => {
         chapterStream.write(` | <a href="./${nextChapterFileName}">Next (${nextChapterMeta.title})</a>`);
       }
       chapterStream.write('</p>');
+      
+      chapterStream.write(chapterText);
 
       // Add navigation links at the end
       chapterStream.write('<p>');
