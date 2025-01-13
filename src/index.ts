@@ -89,22 +89,30 @@ const fetchStory = async (storyId: string) => {
     const startTime = Date.now();
     for (let i = 0; i < totalChapters; i++) {
       const chapterMeta = metadata.chapters[i];
+      const chapterTitle = chapterMeta.title;
+      const chapterDate = new Date(chapterMeta.datePublished).toISOString().split('T')[0];
+      const chapterFileName = `${chapterDate}-${safeName(chapterTitle)}.html`;
+      const chapterFilePath = path.join(storyFolderName, chapterFileName);
+
+      // Check if chapter file already exists
+      if (fs.existsSync(chapterFilePath)) {
+        const chapterContent = fs.readFileSync(chapterFilePath, 'utf-8');
+        const wordCount = chapterContent.split(/\s+/).length;
+        tocStream.write(`<li><a href="./${chapterFileName}">${chapterTitle}</a> - ${wordCount} words (already exists)</li>`);
+        continue;
+      }
+
       const chapterUrl = `https://www.royalroad.com${chapterMeta.url}`;
       const chapterResponse = await axios.get(chapterUrl);
       const chapterDom = new JSDOM(chapterResponse.data);
       const chapterDocument = chapterDom.window.document;
       const chapterText = extractChapterText(chapterDocument);
-      const chapterTitle = chapterMeta.title;
-      const chapterDate = new Date(chapterMeta.datePublished).toISOString().split('T')[0];
 
       const wordCount = chapterText.split(/\s+/).length;
 
-      const chapterFileName = `${chapterDate}-${safeName(chapterTitle)}.html`;
-      const chapterFilePath = path.join(storyFolderName, chapterFileName);
       const chapterStream = fs.createWriteStream(chapterFilePath);
       chapterStream.write(`<html><head><title>${chapterTitle}</title>${chapterStyle}</head><body>`);
       chapterStream.write(`<h2>${chapterTitle}</h2>`);
-
       chapterStream.write(`<p>Word count: ${wordCount}</p>`);
 
       // Add navigation links at the start
