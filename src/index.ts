@@ -76,13 +76,9 @@ const fetchStory = async (storyId: string) => {
     log(`Output folder: ${storyFolderName}`);
 
     const extractionDate = new Date().toISOString().split('T')[0];
-    const storyFileName = path.join(storyFolderName, `${safeName(metadata.title)}-as-at-${extractionDate}.html`);
     const tocFileName = path.join(storyFolderName, `${safeName(metadata.title)}-as-at-${extractionDate}-toc.html`);
-    const storyStream = fs.createWriteStream(storyFileName);
     const tocStream = fs.createWriteStream(tocFileName);
 
-    storyStream.write(`<html><head><title>${metadata.title}</title>${chapterStyle}</head><body>`);
-    storyStream.write(`<h1>${metadata.title}</h1><h2>by ${metadata.author}</h2>`);
     tocStream.write(`<html><head><title>${metadata.title} - TOC</title>${tocStyle}</head><body>`);
     tocStream.write(`<h1>${metadata.title}</h1><h2>by ${metadata.author}</h2>`);
     tocStream.write(`<p>${metadata.description}</p>`);
@@ -127,7 +123,7 @@ const fetchStory = async (storyId: string) => {
         chapterStream.write(` | <a href="./${nextChapterFileName}">Next (${nextChapterMeta.title})</a>`);
       }
       chapterStream.write('</p>');
-      
+
       chapterStream.write(chapterText);
 
       // Add navigation links at the end
@@ -151,7 +147,7 @@ const fetchStory = async (storyId: string) => {
       chapterStream.end();
 
       tocStream.write(`<li><a href="./${chapterFileName}">${chapterTitle}</a> - ${wordCount} words</li>`);
-      
+
       const elapsedTime = (Date.now() - startTime) / 1000; // in seconds
       const estimatedTotalTime = (elapsedTime / (i + 1)) * totalChapters;
       const remainingTime = Math.round(estimatedTotalTime - elapsedTime);
@@ -164,11 +160,8 @@ const fetchStory = async (storyId: string) => {
       process.stdout.write(`\rProgress: ${barWithPercentage} | Remaining time: ${remainingTime}s   `);
     }
 
-    storyStream.write(`</body></html>`);
-    storyStream.end();
     tocStream.write(`</ul></body></html>`);
     tocStream.end();
-    console.log('\nStory, chapters, and TOC saved successfully.');
 
   } catch (error) {
     console.error('Error fetching story metadata:', error);
