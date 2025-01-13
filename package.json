@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "node esbuild.config.js && node prepend-shebang.js",
-    "start": "ts-node --inspect dist/index.js"
+    "start": "ts-node --inspect --source-maps dist/index.js"
   },
   "keywords": [],
   "author": "Peter Wone",

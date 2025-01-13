@@ -8,6 +8,7 @@ import { log } from 'console';
 
 const storyId = process.argv[2];
 const outputFolder = process.argv[3] || process.cwd();
+const barLength = 50;
 
 if (!storyId) {
   console.error('Please provide a storyId as an argument');
@@ -25,11 +26,37 @@ const fetchStory = async (storyId: string) => {
     const response = await axios.get(storyUrl);
     const dom = new JSDOM(response.data);
     const document = dom.window.document;
-    const metadata = extractMetadata(document);
-    const style =
+    const metadata = await extractMetadata(document);
+    const coverArtDataUrl = metadata.coverArt; // Assuming metadata.coverArt contains the data URL
+    const tocStyle =
 `<style>
     body {
     font-family: Georgia, serif;
+    background-image: url('${coverArtDataUrl}');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: rgba(255, 255, 255, 0.8); /* Fallback color */
+    background-blend-mode: lighten; /* Blend the background image with a light color */
+  }
+  table {
+    background-color: #004b7a;
+    color: silver;
+    font-family: sans-serif;
+    margin: auto;
+    padding: 0.5em;
+  }
+  blockquote {
+    font-style: italic;
+    margin: 1em 0;
+  }
+</style>`;
+
+    const chapterStyle =
+`<style>
+    body {
+    font-family: Georgia, serif;
+    background-color: rgba(255, 255, 255, 0.8); /* Fallback color */
   }
   table {
     background-color: #004b7a;
@@ -54,15 +81,16 @@ const fetchStory = async (storyId: string) => {
     const storyStream = fs.createWriteStream(storyFileName);
     const tocStream = fs.createWriteStream(tocFileName);
 
-    storyStream.write(`<html><head><title>${metadata.title}</title>${style}</head><body>`);
+    storyStream.write(`<html><head><title>${metadata.title}</title>${chapterStyle}</head><body>`);
     storyStream.write(`<h1>${metadata.title}</h1><h2>by ${metadata.author}</h2>`);
-    tocStream.write(`<html><head><title>${metadata.title} - TOC</title>${style}</head><body>`);
+    tocStream.write(`<html><head><title>${metadata.title} - TOC</title>${tocStyle}</head><body>`);
     tocStream.write(`<h1>${metadata.title}</h1><h2>by ${metadata.author}</h2>`);
     tocStream.write(`<p>${metadata.description}</p>`);
     tocStream.write(`<h1>Table of Contents</h1><ul>`);
     log(`Fetching story: ${metadata.canonicalUrl}`);
 
     const totalChapters = metadata.chapters.length;
+    const startTime = Date.now();
     for (let i = 0; i < totalChapters; i++) {
       const chapterMeta = metadata.chapters[i];
       const chapterUrl = `https://www.royalroad.com${chapterMeta.url}`;
@@ -78,7 +106,7 @@ const fetchStory = async (storyId: string) => {
       const chapterFileName = `${chapterDate}-${safeName(chapterTitle)}.html`;
       const chapterFilePath = path.join(storyFolderName, chapterFileName);
       const chapterStream = fs.createWriteStream(chapterFilePath);
-      chapterStream.write(`<html><head><title>${chapterTitle}</title>${style}</head><body>`);
+      chapterStream.write(`<html><head><title>${chapterTitle}</title>${chapterStyle}</head><body>`);
       chapterStream.write(`<h2>${chapterTitle}</h2>`);
 
       chapterStream.write(`<p>Word count: ${wordCount}</p>`);
@@ -123,7 +151,17 @@ const fetchStory = async (storyId: string) => {
       chapterStream.end();
 
       tocStream.write(`<li><a href="./${chapterFileName}">${chapterTitle}</a> - ${wordCount} words</li>`);
-      process.stdout.write(`Progress: ${((i + 1) / totalChapters * 100).toFixed(2)}%\r`);
+      
+      const elapsedTime = (Date.now() - startTime) / 1000; // in seconds
+      const estimatedTotalTime = (elapsedTime / (i + 1)) * totalChapters;
+      const remainingTime = Math.round(estimatedTotalTime - elapsedTime);
+
+      const done = Math.floor((i + 1) / totalChapters * barLength);
+      const remaining = barLength - done;
+      const percentage = Math.round((i + 1) / totalChapters * 100);
+      const bar = `[${'='.repeat(done)}${' '.repeat(remaining)}]`;
+      const barWithPercentage = bar.substring(0, Math.floor(barLength / 2) - 3) + ` ${percentage}% ` + bar.substring(Math.floor(barLength / 2) + 4);
+      process.stdout.write(`\rProgress: ${barWithPercentage} | Remaining time: ${remainingTime}s   `);
     }
 
     storyStream.write(`</body></html>`);

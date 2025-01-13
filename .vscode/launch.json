@@ -16,7 +16,8 @@
       "console": "externalTerminal",
       "preLaunchTask": "tsc: build - tsconfig.json",
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/dist/**/*.js.map"
       ]
     }
   ]
