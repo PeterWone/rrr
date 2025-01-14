@@ -1,3 +1,6 @@
+import axios from "axios";
+import { JSDOM } from 'jsdom';
+
 async function arrayBufferToBase64(buffer: ArrayBuffer): Promise<string> {
   const bytes = new Uint8Array(buffer);
   let binary = '';
@@ -6,6 +9,8 @@ async function arrayBufferToBase64(buffer: ArrayBuffer): Promise<string> {
   }
   return btoa(binary);
 }
+
+const noCoverArt = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNlZWUiIC8+PC9zdmc+';
 
 export async function extractMetadata(document: Document): Promise<Record<string, any>> {
   const metadata: Record<string, any> = {};
@@ -30,10 +35,13 @@ export async function extractMetadata(document: Document): Promise<Record<string
     metadata.canonicalUrl = canonicalLinkElement.getAttribute('href');
   }
 
-  const coverArtElement = document.querySelector('.cover-art-container img');
-  if (coverArtElement) {
-    const coverArtUrl = coverArtElement.getAttribute('src');
-    if (coverArtUrl) {
+  const coverArtElement = document.querySelector('meta[property="og:image"]');
+  const coverArtUrl = coverArtElement?.getAttribute('content');
+
+  if (coverArtUrl) {
+    if (coverArtUrl === '/dist/img/nocover-new-min.png') {
+      metadata.coverArt = noCoverArt;
+    } else {
       try {
         const response = await fetch(coverArtUrl);
         const blob = await response.blob();
@@ -64,6 +72,23 @@ export async function extractMetadata(document: Document): Promise<Record<string
   metadata.chapters = chapters;
 
   return metadata;
+}
+
+export async function extractCanonicalUrl(shortUrl: string): Promise<string | null> {
+  const response = await axios.get(shortUrl);
+  const dom = new JSDOM(response.data);
+  const document = dom.window.document;
+  const canonicalLinkElement = document.querySelector('link[rel="canonical"]');
+  if (canonicalLinkElement) {
+    return canonicalLinkElement.getAttribute('href');
+  }
+  return null;
+}
+
+export interface ChapterMeta {
+  title: string;
+  datePublished: string;
+  url: string;
 }
 
 export default extractMetadata;
