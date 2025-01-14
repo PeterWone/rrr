@@ -10,7 +10,7 @@
       ],
       "program": "${workspaceFolder}/dist/index.js",
       "args": [
-        "80881"
+        "66652"
       ],
       "console": "externalTerminal",
       "preLaunchTask": "tsc: build - tsconfig.json",
