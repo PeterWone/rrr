@@ -94,6 +94,18 @@ const fetchStory = async (storyId: string) => {
 
     log(`Number of new chapters found: ${newChapters.length}`);
 
+    // Include already downloaded chapters in the TOC
+    const existingChapters = fs.readdirSync(storyFolderName).filter(file => file.endsWith('.html') && file !== 'index.html');
+    existingChapters.forEach(file => {
+      const chapterText = fs.readFileSync(path.join(storyFolderName, file), 'utf-8');
+      const dom = new JSDOM(chapterText);
+      const chapterTitle = dom.window.document.querySelector('h1')?.textContent || file.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.html$/, '').replace(/-/g, ' ');
+      const wordCountMatch = chapterText.match(/Word count: (\d+)/);
+      const wordCount = wordCountMatch ? wordCountMatch[1] : 'Unknown';
+      tocStream.write(`<li><a href="./${file}">${chapterTitle}</a> - ${wordCount} words</li>`);
+    });
+
+    // Fetch new chapters and add them to the TOC
     const startTime = Date.now();
     for (let i = 0; i < newChapters.length; i++) {
       const chapterMeta: ChapterMeta = newChapters[i];
