@@ -165,7 +165,7 @@ const fetchStory = async (storyId: string) => {
       const percentage = Math.round((i + 1) / newChapters.length * 100);
       const bar = `[${'='.repeat(done)}${' '.repeat(remaining)}]`;
       const barWithPercentage = bar.substring(0, Math.floor(barLength / 2) - 3) + ` ${percentage}% ` + bar.substring(Math.floor(barLength / 2) + 4);
-      process.stdout.write(`\rProgress: ${barWithPercentage} | Remaining time: ${remainingTime}s   `);
+      process.stdout.write(`\${barWithPercentage} Remaining: ${remainingTime}s       `);
     }
 
     tocStream.write(`</ul></body></html>`);
