@@ -1,16 +1,21 @@
 import { log } from "console";
+import { ChapterMeta } from "./extract-story-metadata";
 
-export function extractChapterText(document: Document): string {
+export function extractChapterText(document: Document, chapterMeta: ChapterMeta): string {
   const chapterContentElement = document.querySelector('div.chapter-inner.chapter-content');
   if (chapterContentElement) {
-    // Remove block elements that contain only whitespace
-    chapterContentElement.querySelectorAll('p, div, span').forEach(element => {
-      if (!element.textContent || !element.textContent.trim()) {
+    const elements = chapterContentElement.querySelectorAll('*');
+    elements.forEach(element => {
+      // Remove elements that contain only whitespace or the chapter title
+      if (!element.textContent || !element.textContent.trim() || element.textContent.includes(chapterMeta.title)) {
         element.remove();
       } else {
         // Remove class attribute if the element has a single class with a name that is 44 characters long
         if (element.classList.length === 1 && element.classList[0].length === 44) {
           element.removeAttribute('class');
+        }
+        if (element.textContent.includes('Royal Road')) {
+          element.classList.add("watermark");
         }
         // Remove margin specifications from the style attribute
         if (element.hasAttribute('style')) {
@@ -27,8 +32,8 @@ export function extractChapterText(document: Document): string {
     return chapterContentElement.innerHTML.trim();
   } else {
     log('Chapter content element not found');
+    return 'WTF';
   }
-  return 'WTF';
 }
 
 export default extractChapterText;

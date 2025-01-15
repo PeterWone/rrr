@@ -29,7 +29,7 @@ const fetchStory = async (storyId: string) => {
     const metadata = await extractMetadata(document);
     const coverArtDataUrl = metadata.coverArt; // Assuming metadata.coverArt contains the data URL
     const tocStyle =
-`<style>
+      `<style>
     body {
     font-family: Georgia, serif;
     background-image: url('${coverArtDataUrl}');
@@ -53,7 +53,7 @@ const fetchStory = async (storyId: string) => {
 </style>`;
 
     const chapterStyle =
-`<style>
+      `<style>
     body {
     font-family: Georgia, serif;
     background-color: rgba(255, 255, 255, 0.8); /* Fallback color */
@@ -69,6 +69,7 @@ const fetchStory = async (storyId: string) => {
     font-style: italic;
     margin: 1em 0;
   }
+  .watermark { display: none; }
 </style>`;
 
     const storyFolderName = path.join(outputFolder, safeName(metadata.title));
@@ -118,7 +119,7 @@ const fetchStory = async (storyId: string) => {
       const chapterResponse = await axios.get(chapterUrl);
       const chapterDom = new JSDOM(chapterResponse.data);
       const chapterDocument = chapterDom.window.document;
-      const chapterText = extractChapterText(chapterDocument);
+      const chapterText = extractChapterText(chapterDocument, chapterMeta);
 
       const wordCount = chapterText.split(/\s+/).length;
 
@@ -126,6 +127,9 @@ const fetchStory = async (storyId: string) => {
       chapterStream.write(`<html><head><title>${chapterTitle}</title>${chapterStyle}</head><body>`);
       chapterStream.write(`<h1>${chapterTitle}</h1>`);
       chapterStream.write(`<p>Word count: ${wordCount}</p>`);
+
+      // Add watermark div
+      chapterStream.write(`<div class="watermark">Written by ${metadata.author} and published on Royal Road.</div>`);
 
       // Add navigation links at the start
       chapterStream.write('<p>');
@@ -182,7 +186,8 @@ const fetchStory = async (storyId: string) => {
 
     tocStream.write(`</ul></body></html>`);
     tocStream.end();
-    log(); // Add a newline after the progress bar
+
+    process.stdout.write(`\r${' '.repeat(100)}\r${newChapters.length ? "\n\n" : "\n"}`);
 
   } catch (error) {
     console.error('Error fetching story metadata:', error);
